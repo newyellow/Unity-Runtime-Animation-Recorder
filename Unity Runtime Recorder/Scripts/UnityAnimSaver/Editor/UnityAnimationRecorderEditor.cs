@@ -21,6 +21,8 @@ public class UnityAnimationRecorderEditor : Editor {
 	SerializedProperty timeScaleOnStart;
 	SerializedProperty timeScaleOnRecord;
     SerializedProperty smoothTangents;
+    SerializedProperty recordEachFrame;
+    SerializedProperty howOftenFrame;
 
 
     void OnEnable () {
@@ -39,6 +41,9 @@ public class UnityAnimationRecorderEditor : Editor {
 		timeScaleOnStart = serializedObject.FindProperty ("timeScaleOnStart");
 		timeScaleOnRecord = serializedObject.FindProperty ("timeScaleOnRecord");
         smoothTangents = serializedObject.FindProperty("smoothTangents");
+
+        recordEachFrame = serializedObject.FindProperty("recordEachFrame");
+        howOftenFrame = serializedObject.FindProperty("howOftenFrame");
 
     }
 
@@ -90,6 +95,13 @@ public class UnityAnimationRecorderEditor : Editor {
 		recordLimitedFrames.boolValue = EditorGUILayout.Toggle( "Record Limited Frames", recordLimitedFrames.boolValue );
 
         smoothTangents.boolValue = EditorGUILayout.Toggle("Smooth tangents of animation curves", smoothTangents.boolValue);
+
+        recordEachFrame.boolValue = EditorGUILayout.Toggle("Record animation in every frame", recordEachFrame.boolValue);
+        if (!recordEachFrame.boolValue)
+        {
+            howOftenFrame.floatValue = EditorGUILayout.FloatField("Distance betwen recorded frames", howOftenFrame.floatValue);
+            
+        }
 
         if (recordLimitedFrames.boolValue)
 			EditorGUILayout.PropertyField (recordFrames);

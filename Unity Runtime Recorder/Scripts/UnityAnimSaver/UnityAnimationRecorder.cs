@@ -55,13 +55,7 @@ public class UnityAnimationRecorder : MonoBehaviour {
 			StopRecording ();
 		}
 
-		if (isStart) {
-			nowTime += Time.deltaTime;
-
-			for (int i = 0; i < objRecorders.Length; i++) {
-				objRecorders [i].AddFrame (nowTime);
-			}
-		}
+		
 
 	}
 
@@ -79,19 +73,30 @@ public class UnityAnimationRecorder : MonoBehaviour {
 		ExportAnimationClip ();
 	}
 
-
-
-
-	void FixedUpdate () {
+    
+    public bool recordEachFrame = true;
+    
+    public float howOftenFrame = 0.2f;
+    
+    float lastTime = 0f;
+    void FixedUpdate () {
 
 		if (isStart) {
 
 			if (frameIndex < recordFrames) {
-				for (int i = 0; i < objRecorders.Length; i++) {
-					objRecorders [i].AddFrame (nowTime);
-				}
+                
+                nowTime += Time.fixedDeltaTime;
+                if (lastTime==0|| nowTime > lastTime + howOftenFrame||recordEachFrame)
+                {
+                    lastTime = nowTime;
 
-				++frameIndex;
+                    for (int i = 0; i < objRecorders.Length; i++)
+                        {
+                            objRecorders[i].AddFrame(nowTime);
+                        }
+
+                        ++frameIndex;
+                    }
 			} else {
 				isStart = false;
 				ExportAnimationClip ();
