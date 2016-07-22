@@ -44,4 +44,11 @@ public class UnityObjectAnimation {
 		curves [9].AddValue (time, observeGameObject.localScale.z);
 
 	}
+    public void smoothCurves()
+    {
+        for (int i = 0; i < curves.Length; i++)
+        {
+            curves[i].SmoothTangents();
+        }
+    }
 }

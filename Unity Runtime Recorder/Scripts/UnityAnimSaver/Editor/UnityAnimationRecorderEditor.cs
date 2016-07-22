@@ -20,9 +20,10 @@ public class UnityAnimationRecorderEditor : Editor {
 	SerializedProperty changeTimeScale;
 	SerializedProperty timeScaleOnStart;
 	SerializedProperty timeScaleOnRecord;
+    SerializedProperty smoothTangents;
 
 
-	void OnEnable () {
+    void OnEnable () {
 
 		savePath = serializedObject.FindProperty ("savePath");
 		fileName = serializedObject.FindProperty ("fileName");
@@ -37,8 +38,9 @@ public class UnityAnimationRecorderEditor : Editor {
 		changeTimeScale = serializedObject.FindProperty ("changeTimeScale");
 		timeScaleOnStart = serializedObject.FindProperty ("timeScaleOnStart");
 		timeScaleOnRecord = serializedObject.FindProperty ("timeScaleOnRecord");
-	
-	}
+        smoothTangents = serializedObject.FindProperty("smoothTangents");
+
+    }
 
 	public override void OnInspectorGUI () {
 		serializedObject.Update ();
@@ -87,7 +89,9 @@ public class UnityAnimationRecorderEditor : Editor {
 		// recording frames setting
 		recordLimitedFrames.boolValue = EditorGUILayout.Toggle( "Record Limited Frames", recordLimitedFrames.boolValue );
 
-		if (recordLimitedFrames.boolValue)
+        smoothTangents.boolValue = EditorGUILayout.Toggle("Smooth tangents of animation curves", smoothTangents.boolValue);
+
+        if (recordLimitedFrames.boolValue)
 			EditorGUILayout.PropertyField (recordFrames);
 
 		serializedObject.ApplyModifiedProperties ();

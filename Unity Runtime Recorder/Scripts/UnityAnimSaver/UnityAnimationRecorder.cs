@@ -22,6 +22,7 @@ public class UnityAnimationRecorder : MonoBehaviour {
 	public bool changeTimeScale = false;
 	public float timeScaleOnStart = 0.0f;
 	public float timeScaleOnRecord = 1.0f;
+    public bool smoothTangents = true;
 
 	Transform[] recordObjs;
 	UnityObjectAnimation[] objRecorders;
@@ -107,7 +108,14 @@ public class UnityAnimationRecorder : MonoBehaviour {
 	void ExportAnimationClip () {
 
 		string exportFilePath = savePath + fileName;
-
+        if(smoothTangents)
+        {
+            for (int i = 0; i < objRecorders.Length; i++)
+            {
+                objRecorders[i].smoothCurves();
+              
+            }
+        }
 		AnimationClip clip = new AnimationClip ();
 		clip.name = fileName;
 
