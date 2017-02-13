@@ -3,156 +3,174 @@ using UnityEngine;
 using UnityEditor;
 using System.Collections;
 
-public class UnityAnimationRecorder : MonoBehaviour {
+public class UnityAnimationRecorder : MonoBehaviour
+{
+    // save file path
+    public string savePath;
+    public string fileName;
 
-	// save file path
-	public string savePath;
-	public string fileName;
+    public KeyCode startRecordKey = KeyCode.Q;
+    public KeyCode stopRecordKey = KeyCode.W;
 
-	// use it when save multiple files
-	int fileIndex = 0;
+    // options
+    public bool showLogGUI = false;
+    string logMessage = "";
 
-	public KeyCode startRecordKey = KeyCode.Q;
-	public KeyCode stopRecordKey = KeyCode.W;
+    public bool recordLimitedFrames = false;
+    public int recordFrames = 1000;
+    int frameIndex = 0;
 
-	// options
-	public bool showLogGUI = false;
-	string logMessage = "";
+    public bool changeTimeScale = false;
+    public float timeScaleOnStart = 0.0f;
+    public float timeScaleOnRecord = 1.0f;
+    public float frameDelta = 0.033f;
 
-	public bool recordLimitedFrames = false;
-	public int recordFrames = 1000;
-	int frameIndex = 0;
+    Transform[] recordObjs;
+    UnityObjectAnimation[] objRecorders;
 
-	public bool changeTimeScale = false;
-	public float timeScaleOnStart = 0.0f;
-	public float timeScaleOnRecord = 1.0f;
+    bool isStart = false;
+    float nowTime = 0.0f;
+    private float timeDelta = 0.0f;
 
-	Transform[] recordObjs;
-	UnityObjectAnimation[] objRecorders;
+    // Use this for initialization
+    void Start()
+    {
+        recordObjs = gameObject.GetComponentsInChildren<Transform>();
+        objRecorders = new UnityObjectAnimation[recordObjs.Length];
 
-	bool isStart = false;
-	float nowTime = 0.0f;
+        for (int i = 0; i < recordObjs.Length; i++)
+        {
+            string path = AnimationRecorderHelper.GetTransformPathName(transform, recordObjs[i]);
+            objRecorders[i] = new UnityObjectAnimation(path, recordObjs[i]);
+        }
 
-	// Use this for initialization
-	void Start () {
-		SetupRecorders ();
+        if (changeTimeScale)
+            Time.timeScale = timeScaleOnStart;
+    }
 
-	}
+    // Update is called once per frame
+    void Update()
+    {
 
-	void SetupRecorders () {
-		recordObjs = gameObject.GetComponentsInChildren<Transform> ();
-		objRecorders = new UnityObjectAnimation[recordObjs.Length];
+        if (Input.GetKeyDown(startRecordKey))
+        {
+            StartRecording();
+        }
 
-		frameIndex = 0;
-		nowTime = 0.0f;
+        if (Input.GetKeyDown(stopRecordKey))
+        {
+            StopRecording();
+        }
 
-		for (int i = 0; i < recordObjs.Length; i++) {
-			string path = AnimationRecorderHelper.GetTransformPathName (transform, recordObjs [i]);
-			objRecorders [i] = new UnityObjectAnimation ( path, recordObjs [i]);
-		}
+        if (isStart)
+        {
+            nowTime += Time.deltaTime;
+            timeDelta += Time.deltaTime;
 
-		if (changeTimeScale)
-			Time.timeScale = timeScaleOnStart;
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-		if (Input.GetKeyDown (startRecordKey)) {
-			StartRecording ();
-		}
+            if (timeDelta < frameDelta)
+            {
+                return;
+            }
+            else
+            {
+                timeDelta = 0.0f;
+            }
 
-		if (Input.GetKeyDown (stopRecordKey)) {
-			StopRecording ();
-		}
+            for (int i = 0; i < objRecorders.Length; i++)
+            {
+                objRecorders[i].AddFrame(nowTime);
+            }
+        }
 
-		if (isStart) {
-			nowTime += Time.deltaTime;
+    }
 
-			for (int i = 0; i < objRecorders.Length; i++) {
-				objRecorders [i].AddFrame (nowTime);
-			}
-		}
-
-	}
-
-	public void StartRecording () {
-		CustomDebug ("Start Recorder");
-		isStart = true;
-		Time.timeScale = timeScaleOnRecord;
-	}
-
-
-	public void StopRecording () {
-		CustomDebug ("End Record, generating .anim file");
-		isStart = false;
-
-		ExportAnimationClip ();
-		ResetRecorder ();
-	}
-
-	void ResetRecorder () {
-		SetupRecorders ();
-	}
+    public void StartRecording()
+    {
+        CustomDebug("Start Recorder");
+        isStart = true;
+        Time.timeScale = timeScaleOnRecord;
+    }
 
 
-	void FixedUpdate () {
+    public void StopRecording()
+    {
+        CustomDebug("End Record, generating .anim file");
+        isStart = false;
 
-		if (isStart) {
-
-			if (frameIndex < recordFrames) {
-				for (int i = 0; i < objRecorders.Length; i++) {
-					objRecorders [i].AddFrame (nowTime);
-				}
-
-				++frameIndex;
-			} else {
-				isStart = false;
-				ExportAnimationClip ();
-				CustomDebug ("Recording Finish, generating .anim file");
-			}
-		}
-	}
-
-	void OnGUI () {
-		if (showLogGUI)
-			GUILayout.Label (logMessage);
-	}
-
-	void ExportAnimationClip () {
-
-		string exportFilePath = savePath + fileName;
-
-		// if record multiple files when run
-		if (fileIndex != 0)
-			exportFilePath += "-" + fileIndex + ".anim";
-		else
-			exportFilePath += ".anim";
+        ExportAnimationClip();
+    }
 
 
-		AnimationClip clip = new AnimationClip ();
-		clip.name = fileName;
 
-		for (int i = 0; i < objRecorders.Length; i++) {
-			UnityCurveContainer[] curves = objRecorders [i].curves;
 
-			for (int x = 0; x < curves.Length; x++) {
-				clip.SetCurve (objRecorders [i].pathName, typeof(Transform), curves [x].propertyName, curves [x].animCurve);
-			}
-		}
+    void FixedUpdate()
+    {
 
-		clip.EnsureQuaternionContinuity ();
-		AssetDatabase.CreateAsset ( clip, exportFilePath );
+        if (isStart)
+        {
 
-		CustomDebug (".anim file generated to " + exportFilePath);
-		fileIndex++;
-	}
+            if (timeDelta < frameDelta)
+            {
+                return;
+            }
+            else
+            {
+                timeDelta = 0.0f;
+            }
 
-	void CustomDebug ( string message ) {
-		if (showLogGUI)
-			logMessage = message;
-		else
-			Debug.Log (message);
-	}
+            if (frameIndex < recordFrames)
+            {
+                for (int i = 0; i < objRecorders.Length; i++)
+                {
+                    objRecorders[i].AddFrame(nowTime);
+                }
+
+                ++frameIndex;
+            }
+            else
+            {
+                isStart = false;
+                ExportAnimationClip();
+                CustomDebug("Recording Finish, generating .anim file");
+            }
+        }
+    }
+
+    void OnGUI()
+    {
+        if (showLogGUI)
+            GUILayout.Label(logMessage);
+    }
+
+    void ExportAnimationClip()
+    {
+        string exportFilePath = savePath + fileName;
+
+        AnimationClip clip = new AnimationClip();
+        clip.name = fileName;
+
+        for (int i = 0; i < objRecorders.Length; i++)
+        {
+            UnityCurveContainer[] curves = objRecorders[i].curves;
+
+            for (int x = 0; x < curves.Length; x++)
+            {
+                clip.SetCurve(objRecorders[i].pathName, typeof(Transform), curves[x].propertyName, curves[x].animCurve);
+            }
+        }
+
+        clip.EnsureQuaternionContinuity();
+        AssetDatabase.CreateAsset(clip, exportFilePath);
+
+        CustomDebug(".anim file generated to " + exportFilePath);
+    }
+
+    void CustomDebug(string message)
+    {
+        if (showLogGUI)
+            logMessage = message;
+        else
+            Debug.Log(message);
+    }
 }
 #endif
