@@ -3,92 +3,103 @@ using UnityEditor;
 using System.Collections;
 
 [CustomEditor(typeof(UnityAnimationRecorder))]
-public class UnityAnimationRecorderEditor : Editor {
+public class UnityAnimationRecorderEditor : Editor
+{
 
-	// save file path
-	SerializedProperty savePath;
-	SerializedProperty fileName;
+    // save file path
+    SerializedProperty savePath;
+    SerializedProperty fileName;
 
-	SerializedProperty startRecordKey;
-	SerializedProperty stopRecordKey;
+    SerializedProperty startRecordKey;
+    SerializedProperty stopRecordKey;
 
-	// options
-	SerializedProperty showLogGUI;
-	SerializedProperty recordLimitedFrames;
-	SerializedProperty recordFrames;
+    // options
+    SerializedProperty showLogGUI;
+    SerializedProperty recordLimitedFrames;
+    SerializedProperty recordFrames;
 
-	SerializedProperty changeTimeScale;
-	SerializedProperty timeScaleOnStart;
-	SerializedProperty timeScaleOnRecord;
-
-
-	void OnEnable () {
-
-		savePath = serializedObject.FindProperty ("savePath");
-		fileName = serializedObject.FindProperty ("fileName");
-
-		startRecordKey = serializedObject.FindProperty ("startRecordKey");
-		stopRecordKey = serializedObject.FindProperty ("stopRecordKey");
-
-		showLogGUI = serializedObject.FindProperty ("showLogGUI");
-		recordLimitedFrames = serializedObject.FindProperty ("recordLimitedFrames");
-		recordFrames = serializedObject.FindProperty ("recordFrames");
-
-		changeTimeScale = serializedObject.FindProperty ("changeTimeScale");
-		timeScaleOnStart = serializedObject.FindProperty ("timeScaleOnStart");
-		timeScaleOnRecord = serializedObject.FindProperty ("timeScaleOnRecord");
-	
-	}
-
-	public override void OnInspectorGUI () {
-		serializedObject.Update ();
-
-		EditorGUILayout.LabelField ("== Path Settings ==");
-
-		if (GUILayout.Button ("Set Save Path")) {
-			string defaultName = serializedObject.targetObject.name + "-Animation";
-			string targetPath = EditorUtility.SaveFilePanelInProject ("Save Anim File To ..", defaultName, "", "please select a folder and enter the file name");
-
-			int lastIndex = targetPath.LastIndexOf ("/");
-			savePath.stringValue = targetPath.Substring (0, lastIndex + 1);
-			string toFileName = targetPath.Substring (lastIndex + 1);
-
-			fileName.stringValue = toFileName;
-		}
-		EditorGUILayout.PropertyField (savePath);
-		EditorGUILayout.PropertyField (fileName);
+    SerializedProperty changeTimeScale;
+    SerializedProperty timeScaleOnStart;
+    SerializedProperty timeScaleOnRecord;
+    SerializedProperty frameDelta;
 
 
-		EditorGUILayout.Space ();
+    void OnEnable()
+    {
 
-		// keys setting
-		EditorGUILayout.LabelField( "== Control Keys ==" );
-		EditorGUILayout.PropertyField (startRecordKey);
-		EditorGUILayout.PropertyField (stopRecordKey);
+        savePath = serializedObject.FindProperty("savePath");
+        fileName = serializedObject.FindProperty("fileName");
 
-		EditorGUILayout.Space ();
+        startRecordKey = serializedObject.FindProperty("startRecordKey");
+        stopRecordKey = serializedObject.FindProperty("stopRecordKey");
 
-		// Other Settings
-		EditorGUILayout.LabelField( "== Other Settings ==" );
-		bool timeScaleOption = EditorGUILayout.Toggle ( "Change Time Scale", changeTimeScale.boolValue);
-		changeTimeScale.boolValue = timeScaleOption;
+        showLogGUI = serializedObject.FindProperty("showLogGUI");
+        recordLimitedFrames = serializedObject.FindProperty("recordLimitedFrames");
+        recordFrames = serializedObject.FindProperty("recordFrames");
 
-		if (timeScaleOption) {
-			timeScaleOnStart.floatValue = EditorGUILayout.FloatField ("TimeScaleOnStart", timeScaleOnStart.floatValue);
-			timeScaleOnRecord.floatValue = EditorGUILayout.FloatField ("TimeScaleOnRecord", timeScaleOnRecord.floatValue);
-		}
+        changeTimeScale = serializedObject.FindProperty("changeTimeScale");
+        timeScaleOnStart = serializedObject.FindProperty("timeScaleOnStart");
+        timeScaleOnRecord = serializedObject.FindProperty("timeScaleOnRecord");
+        frameDelta = serializedObject.FindProperty("frameDelta");
+    }
 
-		// gui log message
-		showLogGUI.boolValue = EditorGUILayout.Toggle ("Show Debug On GUI", showLogGUI.boolValue);
+    public override void OnInspectorGUI()
+    {
+        serializedObject.Update();
 
-		// recording frames setting
-		recordLimitedFrames.boolValue = EditorGUILayout.Toggle( "Record Limited Frames", recordLimitedFrames.boolValue );
+        EditorGUILayout.LabelField("== Path Settings ==");
 
-		if (recordLimitedFrames.boolValue)
-			EditorGUILayout.PropertyField (recordFrames);
+        if (GUILayout.Button("Set Save Path"))
+        {
+            string defaultName = serializedObject.targetObject.name + "-Animation.anim";
+            string targetPath = EditorUtility.SaveFilePanelInProject("Save Anim File To ..", defaultName, "anim", "please select a folder and enter the file name");
 
-		serializedObject.ApplyModifiedProperties ();
+            int lastIndex = targetPath.LastIndexOf("/");
+            savePath.stringValue = targetPath.Substring(0, lastIndex + 1);
+            string toFileName = targetPath.Substring(lastIndex + 1);
 
-		//DrawDefaultInspector ();
-	}
+            if (toFileName.IndexOf(".anim") < 0)
+                toFileName += ".anim";
+
+            fileName.stringValue = toFileName;
+        }
+        EditorGUILayout.PropertyField(savePath);
+        EditorGUILayout.PropertyField(fileName);
+
+
+        EditorGUILayout.Space();
+
+        // keys setting
+        EditorGUILayout.LabelField("== Control Keys ==");
+        EditorGUILayout.PropertyField(startRecordKey);
+        EditorGUILayout.PropertyField(stopRecordKey);
+
+        EditorGUILayout.Space();
+
+        // Other Settings
+        EditorGUILayout.LabelField("== Other Settings ==");
+        bool timeScaleOption = EditorGUILayout.Toggle("Change Time Scale", changeTimeScale.boolValue);
+        changeTimeScale.boolValue = timeScaleOption;
+
+        if (timeScaleOption)
+        {
+            timeScaleOnStart.floatValue = EditorGUILayout.FloatField("TimeScaleOnStart", timeScaleOnStart.floatValue);
+            timeScaleOnRecord.floatValue = EditorGUILayout.FloatField("TimeScaleOnRecord", timeScaleOnRecord.floatValue);
+        }
+
+        // gui log message
+        showLogGUI.boolValue = EditorGUILayout.Toggle("Show Debug On GUI", showLogGUI.boolValue);
+
+        // recording frames setting
+        recordLimitedFrames.boolValue = EditorGUILayout.Toggle("Record Limited Frames", recordLimitedFrames.boolValue);
+
+        if (recordLimitedFrames.boolValue)
+            EditorGUILayout.PropertyField(recordFrames);
+
+        frameDelta.floatValue = 1.0f / EditorGUILayout.FloatField("Frame Rate", 1.0f / frameDelta.floatValue);
+
+        serializedObject.ApplyModifiedProperties();
+
+        //DrawDefaultInspector ();
+    }
 }
