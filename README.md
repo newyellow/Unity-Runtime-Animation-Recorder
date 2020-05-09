@@ -65,8 +65,5 @@
   All physics in Unity will affect by timeScale setting.
   And if you want to modify the object animation through your own script, please use FixedUpdate instead of Update.  
   
-## Donation
-
-  If you find this project helpful, any amount of donation is welcome!
-    
-  [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](http://newyellow.idv.tw/site/donate-en/)
+## License
+[MIT](https://github.com/newyellow/Unity-Runtime-Animation-Recorder/blob/master/LICENSE.md)
