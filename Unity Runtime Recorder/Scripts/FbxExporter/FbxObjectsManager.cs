@@ -23,12 +23,12 @@ public class FbxObjectsManager
 		string newData = "";
 
 		// find start of the Objects
-		int startIndex = sourceData.IndexOf ("Objects:  {\n");
+		int startIndex = sourceData.IndexOf ("Objects:  {", StringComparison.Ordinal);
 		// copy data into new
 		newData = sourceData.Substring (0, startIndex);
 
 
-		startIndex += ("Objects:  {\n").Length;
+		startIndex += ("Objects:  {").Length;
 
 		StringReader reader = new StringReader (sourceData);
 
